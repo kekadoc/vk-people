@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/button_action"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="32dp"
+        android:text="Next"
+        app:icon="@drawable/ic_next_user"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/cardView" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="16sp"
+        app:cardElevation="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@+id/button_action"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:id="@+id/linearLayout_shutter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:visibility="invisible">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:src="@drawable/ic_loading_logo" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/linearProgressIndicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:indeterminate="true" />
+
+        </LinearLayout>
+
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/userView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <LinearLayout
+                android:id="@+id/linearLayout_states"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toStartOf="@+id/imageView_photo"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/imageView_stateTrending"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_trending" />
+
+                <ImageView
+                    android:id="@+id/imageView_stateClosed"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_locked" />
+
+                <ImageView
+                    android:id="@+id/imageView_stateFriend"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_friend" />
+
+                <ImageView
+                    android:id="@+id/imageView_stateFavorite"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_favorite_24" />
+
+                <ImageView
+                    android:id="@+id/imageView_stateBlacklisted"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_blacklisted_24" />
+
+                <ImageView
+                    android:id="@+id/imageView_stateBlacklistedByMe"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_blacklisted_by_me" />
+
+                <ImageView
+                    android:id="@+id/imageView_stateHidden"
+                    style="@style/UserStateView"
+                    android:src="@drawable/ic_user_state_hidden" />
+
+            </LinearLayout>
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imageView_photo"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="?colorControlHighlight"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_lastSeen"
+                app:shapeAppearance="@style/CircularShapeAppearance"
+                app:shapeAppearanceOverlay="@style/CircularShapeAppearance"
+                tools:srcCompat="@tools:sample/avatars" />
+
+            <TextView
+                android:id="@+id/textView_domain"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Domain"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@+id/imageView_photo"
+                app:layout_constraintStart_toStartOf="@+id/imageView_photo"
+                app:layout_constraintTop_toBottomOf="@+id/imageView_photo" />
+
+            <TextView
+                android:id="@+id/textView_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginEnd="16dp"
+                android:text="sex + Name + verified"
+                android:textAlignment="center"
+                android:textSize="20sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_domain" />
+
+            <TextView
+                android:id="@+id/textView_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="status"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                android:textStyle="italic"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_name" />
+
+            <TextView
+                android:id="@+id/textView_bdate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="Дата рождения"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.498"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_status" />
+
+            <TextView
+                android:id="@+id/textView_city"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="Город"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_bdate" />
+
+            <TextView
+                android:id="@+id/textView_family"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="Семейное положение"
+                android:textAlignment="center"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_city" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroup_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/textView_family"
+                app:singleLine="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_video"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_videos" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_photos"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_images" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_audios"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_musics" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_gifts"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_gifts" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroup_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/chipGroup_0">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_groups"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_groups" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_friends"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_friends" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_followers"
+                    style="@style/UserChipCounter"
+                    app:chipIcon="@drawable/ic_user_counter_followers" />
+
+            </com.google.android.material.chip.ChipGroup>
+
+            <TextView
+                android:id="@+id/textView_lastSeen"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:gravity="center"
+                android:text="TextView"
+                android:textAlignment="center"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@+id/linearLayout_states"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

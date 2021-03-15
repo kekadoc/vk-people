@@ -1,6 +1,7 @@
 package com.kekadoc.projects.vkpeople
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -13,6 +14,9 @@ import com.kekadoc.projects.vkpeople.request.VKUserRequest
 import com.kekadoc.projects.vkpeople.request.VKRawUsersRequest
 import com.vk.api.sdk.VK
 import com.vk.api.sdk.VKApiCallback
+import com.vk.api.sdk.VKApiConfig
+import com.vk.api.sdk.VKDefaultValidationHandler
+import com.vk.api.sdk.auth.VKScope
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -66,6 +70,18 @@ fun <T> vkApiCallback(onSuccess: ((result: T) -> Unit)? = null,
 
 private const val VK_BASE_URL = "https://vk.com"
 private const val VK_APP_PACKAGE_ID = "com.vkontakte.android"
+
+
+internal object VKApi {
+    fun createVKConfig(context: Context): VKApiConfig {
+        return VKApiConfig(
+            context = context,
+            appId = context.resources.getIdentifier("com_vk_sdk_AppId", "integer", context.packageName),
+            validationHandler = VKDefaultValidationHandler(context),
+            lang = "ru")
+    }
+    fun getVKScopes() = arrayListOf(VKScope.WALL, VKScope.PHOTOS)
+}
 
 val VK.BASE_URL: String
     get() = VK_BASE_URL

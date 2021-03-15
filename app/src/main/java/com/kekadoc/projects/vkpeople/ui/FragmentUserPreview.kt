@@ -38,16 +38,16 @@ class FragmentUserPreview : Fragment() {
         private const val TAG: String = "FragmentUserPreview-TAG"
     }
 
-    private val activityViewModel: ViewModelActivity by activityViewModels()
+    private val activityViewModel: ActivityViewModel by activityViewModels()
 
     private lateinit var userPreview: UserPreview
-    
+
+    private lateinit var actionView: ExtendedFloatingActionButton
     private lateinit var userView: View
     private lateinit var shutterView: View
     private lateinit var indicator: LinearProgressIndicator
 
     private fun action() {
-        showShutter(true)
         activityViewModel.requestRandomUser()
     }
     private fun longAction() {
@@ -60,12 +60,11 @@ class FragmentUserPreview : Fragment() {
                 .setPositiveButton(R.string.ok) { _, _ ->
                     val txt = editText.text.toString()
                     val id = txt.toIntOrNull()
-                    if (id != null) {
-                        showShutter(true)
-                        activityViewModel.requestUser(id)
-                    } else {
-                        val view = requireView().findViewById<ExtendedFloatingActionButton>(R.id.button_action)
-                        Snackbar.make(view, "Некорректный ID!", Snackbar.LENGTH_SHORT).setAnchorView(view).show()
+                    if (id != null) activityViewModel.requestUser(id)
+                    else {
+                        Snackbar.make(actionView, "Некорректный ID!", Snackbar.LENGTH_SHORT)
+                            .setAnchorView(actionView)
+                            .show()
                     }
                 }
                 .show()
@@ -122,7 +121,9 @@ class FragmentUserPreview : Fragment() {
         activityViewModel.showingUser.observe(viewLifecycleOwner) {
             updateUI(it)
         }
-
+        activityViewModel.loadingProcess.observe(viewLifecycleOwner) {
+            if (it) showShutter(true)
+        }
     }
     
     private inner class UserPreview(view: View) {
@@ -231,23 +232,35 @@ class FragmentUserPreview : Fragment() {
             showShutter(false)
 
             imageViewPhoto.setImageDrawable(null)
-            /*imageViewIcFriend.visibility = View.INVISIBLE
-            imageViewIcFavorite.visibility = View.INVISIBLE
-            imageViewIcBlacklisted.visibility = View.INVISIBLE
-            imageViewIcBlacklistedByMe.visibility = View.INVISIBLE
-            imageViewIcHided.visibility = View.INVISIBLE*/
             textViewDomain.text = null
+            textViewName.text = null
             textViewStatus.text = null
             textViewBDate.text = null
             textViewCity.text = null
             textViewFamily.text = null
 
+            chipVideos.text = 0.toString()
+            chipPhotos.text = 0.toString()
+            chipAudios.text = 0.toString()
+            chipGifts.text = 0.toString()
+            chipGroups.text = 0.toString()
+            chipFriends.text = 0.toString()
+            chipFollowers.text = 0.toString()
+
+            imageViewStateTrending.visibility = View.VISIBLE
+            imageViewStateFriend.visibility = View.VISIBLE
+            imageViewStateFavorite.visibility = View.VISIBLE
+            imageViewStateClosed.visibility = View.VISIBLE
+            imageViewStateHidden.visibility = View.VISIBLE
+            imageViewStateBlacklisted.visibility = View.VISIBLE
+            imageViewStateBlacklistedByMe.visibility = View.VISIBLE
+
         }
         @MainThread
         private fun onUserAttach(user: VKUser) {
+            showShutter(true)
 
             if (userLoadingProcess != null) userLoadingProcess!!.cancel()
-
             userLoadingProcess = lifecycleScope.launch(Dispatchers.IO) {
                 val image = if (user.photo_400_orig == "") user.photo_max_orig else user.photo_400_orig
 
@@ -326,8 +339,9 @@ class FragmentUserPreview : Fragment() {
                     imageViewStateBlacklisted.visibility = if (user.blacklisted) View.VISIBLE else View.GONE
                     imageViewStateBlacklistedByMe.visibility = if (user.blacklisted_by_me) View.VISIBLE else View.GONE
 
-                    showContent()
                     userLoadingProcess = null
+
+                    showContent()
                 }
             }
 

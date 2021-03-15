@@ -4,7 +4,7 @@
     tools:showIn="navigation_view">
 
     <group android:id="@+id/menuGroup_account"
-        android:checkableBehavior="single">
+        android:checkableBehavior="none">
         <item
             android:id="@+id/menuItem_login"
             android:icon="@drawable/ic_navigation_login"

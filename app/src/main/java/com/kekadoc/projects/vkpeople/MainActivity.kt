@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.drawable.RippleDrawable
 import android.os.Bundle
-import android.util.Log
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -23,19 +22,13 @@ import com.kekadoc.tools.android.ThemeColor
 import com.kekadoc.tools.android.drawable
 import com.kekadoc.tools.android.view.themeColor
 import com.vk.api.sdk.VK
-import com.vk.api.sdk.VKApiConfig
-import com.vk.api.sdk.VKDefaultValidationHandler
 import okhttp3.*
 
-class MainActivity : AppCompatActivity() {
-
-    companion object {
-        private const val TAG: String = "MainActivity-TAG"
-    }
+class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
 
-    private val viewModel: ViewModelActivity by viewModels()
+    private val viewModel: ActivityViewModel by viewModels()
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -46,22 +39,15 @@ class MainActivity : AppCompatActivity() {
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        val config = VKApiConfig(
-                context = this,
-                appId = resources.getIdentifier("com_vk_sdk_AppId", "integer", packageName),
-                validationHandler = VKDefaultValidationHandler(this),
-                lang = "ru")
-        VK.setConfig(config)
-
-        VK.addTokenExpiredHandler(viewModel.tokenTracker)
+        VK.apply {
+            setConfig(VKApi.createVKConfig(this@MainActivity))
+            addTokenExpiredHandler(viewModel.tokenTracker)
+        }
 
         viewModel.requestCurrentUser()
 
         val toolbar: Toolbar = findViewById(R.id.toolbar)
-        setSupportActionBar(toolbar)
-
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById<NavigationView>(R.id.nav_view).apply {
 
@@ -81,9 +67,7 @@ class MainActivity : AppCompatActivity() {
 
             linearLayout.background = RippleDrawable(ColorStateList.valueOf(themeColor(ThemeColor.RIPPLE)), drawable(R.drawable.side_nav_bar), null)
             linearLayout.setOnClickListener {
-                viewModel.currentUser.value?.let { user ->
-                    user.id.let { startVKUserProfile(it) }
-                }
+                viewModel.currentUser.value?.let { user -> startVKUserProfile(user.id) }
             }
 
             viewModel.currentUser.observe(this@MainActivity) {
@@ -100,30 +84,25 @@ class MainActivity : AppCompatActivity() {
 
         }
 
+        setSupportActionBar(toolbar)
         val navController = findNavController(R.id.nav_host_fragment)
         appBarConfiguration = AppBarConfiguration(setOf(R.id.destination_service_randomUsers), drawerLayout)
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-
         viewModel.currentUser.observe(this) {
+            val navItemLogin = navView.menu.findItem(R.id.menuItem_login)
+            val navItemLogout = navView.menu.findItem(R.id.menuItem_logout)
             if (it == null) {
-                navView.menu.findItem(R.id.menuItem_login).apply {
-                    this.isVisible = true
-                }
-                navView.menu.findItem(R.id.menuItem_logout).apply {
-                    this.isVisible = false
-                }
+                navItemLogin.isVisible = true
+                navItemLogout.isVisible = false
             } else {
-                navView.menu.findItem(R.id.menuItem_login).apply {
-                    this.isVisible = false
-                }
-                navView.menu.findItem(R.id.menuItem_logout).apply {
-                    this.isVisible = true
-                }
+                navItemLogin.isVisible = false
+                navItemLogout.isVisible = true
             }
         }
+
     }
 
     override fun onSupportNavigateUp(): Boolean {

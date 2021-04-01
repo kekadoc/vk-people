@@ -1,7 +1,7 @@
-package com.kekadoc.projects.vkpeople.request
+package com.kekadoc.projects.vkpeople.vkapi.request
 
-import com.kekadoc.projects.vkpeople.data.VKRawUser
-import com.kekadoc.projects.vkpeople.data.VKUser
+import com.kekadoc.projects.vkpeople.vkapi.data.VKRawUser
+import com.kekadoc.projects.vkpeople.vkapi.data.VKUser
 import com.vk.api.sdk.VKApiManager
 import com.vk.api.sdk.VKApiResponseParser
 import com.vk.api.sdk.VKMethodCall

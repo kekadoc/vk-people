@@ -1,8 +1,7 @@
-package com.kekadoc.projects.vkpeople.request
+package com.kekadoc.projects.vkpeople.vkapi.request
 
 import android.util.Log
-import com.kekadoc.projects.vkpeople.data.VKUser
-import com.kekadoc.projects.vkpeople.getIntOrNull
+import com.kekadoc.projects.vkpeople.vkapi.data.VKUser
 import com.vk.api.sdk.VKApiManager
 import com.vk.api.sdk.VKApiResponseParser
 import com.vk.api.sdk.VKMethodCall
@@ -54,6 +53,7 @@ class VKUserRequest(private val id: Int) : ApiCommand<VKUser?>() {
                 VKUser.Fields.QUOTES,
                 VKUser.Fields.ABOUT,
 
+                VKUser.Fields.PHOTO_200,
                 VKUser.Fields.PHOTO_400_ORIG,
                 VKUser.Fields.PHOTO_MAX_ORIG,
         )
@@ -79,7 +79,8 @@ class VKUserRequest(private val id: Int) : ApiCommand<VKUser?>() {
                     if (response == null) return null
                     val js = JSONObject(response)
                     val jsr = js.getJSONObject(VKRequestApi.RESPONSE)
-                    return jsr.getIntOrNull(VKRequestApi.Gifts.RESULT_COUNT)
+                    if (!jsr.has(VKRequestApi.Gifts.RESULT_COUNT)) return null
+                    return jsr.getInt(VKRequestApi.Gifts.RESULT_COUNT)
                 }
             })
         }catch (e: VKApiExecutionException) {}

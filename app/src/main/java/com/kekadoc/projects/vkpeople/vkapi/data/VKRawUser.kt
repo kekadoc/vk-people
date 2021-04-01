@@ -1,4 +1,4 @@
-package com.kekadoc.projects.vkpeople.data
+package com.kekadoc.projects.vkpeople.vkapi.data
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

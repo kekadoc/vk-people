@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kekadoc.projects.vkpeople">
 
+    <queries>
+        <package android:name="com.vkontakte.android"/>
+    </queries>
+
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application

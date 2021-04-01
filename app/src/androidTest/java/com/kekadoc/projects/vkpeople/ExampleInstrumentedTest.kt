@@ -18,6 +18,7 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         // Context of the app under test.
+        println("GG")
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.kekadoc.projects.vkpeople", appContext.packageName)
     }

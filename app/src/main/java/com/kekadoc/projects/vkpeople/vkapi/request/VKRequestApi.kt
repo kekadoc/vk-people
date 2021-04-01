@@ -1,4 +1,4 @@
-package com.kekadoc.projects.vkpeople.request
+package com.kekadoc.projects.vkpeople.vkapi.request
 
 object VKRequestApi {
 

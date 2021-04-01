@@ -7,8 +7,20 @@
 
     <fragment
         android:id="@+id/destination_service_randomUsers"
-        android:name="com.kekadoc.projects.vkpeople.ui.FragmentUserPreview"
+        android:name="com.kekadoc.projects.vkpeople.ui.FragmentServiceRandomUser"
         android:label="@string/menu_item_service_random_users"
-        tools:layout="@layout/fragment_service_random_users" />
+        tools:layout="@layout/fragment_service_random_users" >
+        <action
+            android:id="@+id/action_destination_service_randomUsers_to_fragmentSavedUsers"
+            app:destination="@id/destination_service_saved_users" />
+    </fragment>
+    <fragment
+        android:id="@+id/destination_service_saved_users"
+        android:name="com.kekadoc.projects.vkpeople.ui.FragmentServiceSavedUsers"
+        android:label="FragmentSavedUsers" >
+        <action
+            android:id="@+id/action_fragmentSavedUsers_to_destination_service_randomUsers"
+            app:destination="@id/destination_service_randomUsers" />
+    </fragment>
 
 </navigation>

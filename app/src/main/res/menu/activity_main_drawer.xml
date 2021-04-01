@@ -4,7 +4,7 @@
     tools:showIn="navigation_view">
 
     <group android:id="@+id/menuGroup_account"
-        android:checkableBehavior="none">
+        android:checkableBehavior="all">
         <item
             android:id="@+id/menuItem_login"
             android:icon="@drawable/ic_navigation_login"
@@ -20,5 +20,9 @@
             android:id="@+id/destination_service_randomUsers"
             android:icon="@drawable/ic_navigation_find_users"
             android:title="@string/menu_item_service_random_users" />
+        <item
+            android:id="@+id/destination_service_saved_users"
+            android:icon="@drawable/ic_user_save"
+            android:title="@string/menu_item_service_saved_users" />
     </group>
 </menu>

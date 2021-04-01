@@ -3,7 +3,6 @@ package com.kekadoc.projects.vkpeople.ui
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -15,16 +14,20 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import coil.imageLoader
 import coil.request.ImageRequest
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
 import com.kekadoc.projects.vkpeople.*
-import com.kekadoc.projects.vkpeople.data.VKUser
+import com.kekadoc.projects.vkpeople.util.RequestCallback
+import com.kekadoc.projects.vkpeople.vkapi.data.VKUser
+import com.kekadoc.projects.vkpeople.vkapi.VKApi
+import com.kekadoc.projects.vkpeople.vkapi.startVKUserProfile
 import com.kekadoc.tools.android.AndroidUtils
+import com.kekadoc.tools.android.fragment.drawable
 import com.kekadoc.tools.android.fragment.string
 import com.kekadoc.tools.android.view.dpToPx
 import kotlinx.coroutines.*
@@ -32,33 +35,43 @@ import java.lang.StringBuilder
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FragmentUserPreview : Fragment() {
-
-    companion object {
-        private const val TAG: String = "FragmentUserPreview-TAG"
-    }
+class FragmentServiceRandomUser : Fragment(R.layout.fragment_service_random_users) {
 
     private val activityViewModel: ActivityViewModel by activityViewModels()
 
     private lateinit var userPreview: UserPreview
 
     private lateinit var actionView: ExtendedFloatingActionButton
+    private lateinit var saveButtonView: FloatingActionButton
     private lateinit var userView: View
     private lateinit var shutterView: View
     private lateinit var indicator: LinearProgressIndicator
 
     private fun action() {
-        activityViewModel.requestRandomUser()
+        activityViewModel.requestRandomUser(object : RequestCallback<Unit> {
+            override fun onFail(error: Throwable) {
+                showShutter(false)
+            }
+
+            override fun onStart() {
+                showShutter(true)
+            }
+
+            override fun onSuccess(result: Unit) {
+                showShutter(false)
+            }
+        })
     }
     private fun longAction() {
         val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_input_id, null, false)
         val editText = view.findViewById<EditText>(R.id.editText_inputId)
         MaterialAlertDialogBuilder(requireContext())
                 .setView(view)
-                .setTitle("Введите ID пользователя:")
+                .setTitle(R.string.message_custom_id_title)
                 .setIcon(R.drawable.ic_input_id)
                 .setPositiveButton(R.string.ok) { _, _ ->
                     val txt = editText.text.toString()
+
                     val id = txt.toIntOrNull()
                     if (id != null) activityViewModel.requestUser(id)
                     else {
@@ -84,13 +97,73 @@ class FragmentUserPreview : Fragment() {
     
     private fun updateUI(user: VKUser?) {
         userPreview.user = user
+        updateSaveUserButton(user)
     }
-    override fun onCreateView(
-            inflater: LayoutInflater,
-            container: ViewGroup?,
-            savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_service_random_users, container, false)
+    private fun updateSaveUserButton(user: VKUser?) {
+        val userId: Int = user?.id ?: return
+        activityViewModel.containUserInSaved(userId, object : RequestCallback<Boolean> {
+            override fun onStart() {
+                setupSaveUserActionButton()
+                saveButtonView.isEnabled = false
+            }
+            override fun onSuccess(result: Boolean) {
+                if (result) setupDeleteUserActionButton()
+                saveButtonView.isEnabled = activityViewModel.currentUser.value != null
+            }
+        })
+    }
+
+    private fun setupDeleteUserActionButton() {
+        saveButtonView.setImageDrawable(drawable(R.drawable.ic_delete))
+        saveButtonView.setOnClickListener {
+            val id = activityViewModel.loadedUser.value?.id ?: return@setOnClickListener
+            activityViewModel.deleteSavedUser(id, object : RequestCallback<Unit> {
+                override fun onFail(error: Throwable) {
+                    Snackbar.make(
+                        it,
+                        R.string.message_user_delete_fail,
+                        Snackbar.LENGTH_SHORT
+                    ).setAction(R.string.message_user_delete_fail_action) {
+                        activityViewModel.deleteSavedUser(id, this)
+                    }.setAnchorView(it).show()
+                }
+                override fun onSuccess(result: Unit) {
+                    Snackbar.make(
+                        it,
+                        R.string.message_user_delete_success,
+                        Snackbar.LENGTH_SHORT
+                    ).setAction(R.string.message_user_delete_success_action) {
+                        activityViewModel.saveUser(id)
+                    }.setAnchorView(it).show()
+                }
+            })
+        }
+    }
+    private fun setupSaveUserActionButton() {
+        saveButtonView.setImageDrawable(drawable(R.drawable.ic_user_save))
+        saveButtonView.setOnClickListener {
+            val id = activityViewModel.loadedUser.value?.id ?: return@setOnClickListener
+            activityViewModel.saveUser(id, object : RequestCallback<Unit> {
+                override fun onFail(error: Throwable) {
+                    Snackbar.make(
+                        it,
+                        R.string.message_user_save_fail,
+                        Snackbar.LENGTH_SHORT
+                    ).setAction(R.string.message_user_save_fail_action) {
+                        activityViewModel.saveUser(id, this)
+                    }.setAnchorView(it).show()
+                }
+                override fun onSuccess(result: Unit) {
+                    Snackbar.make(
+                        it,
+                        R.string.message_user_save_success,
+                        Snackbar.LENGTH_SHORT
+                    ).setAction(R.string.message_user_save_success_action) {
+                        activityViewModel.deleteSavedUser(id)
+                    }.setAnchorView(it).show()
+                }
+            })
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -99,10 +172,7 @@ class FragmentUserPreview : Fragment() {
         userView = view.findViewById(R.id.userView)
         shutterView = view.findViewById(R.id.linearLayout_shutter)
         indicator = view.findViewById(R.id.linearProgressIndicator)
-
-        userPreview = UserPreview(view)
-
-        view.findViewById<MaterialButton>(R.id.button_action).apply {
+        actionView = view.findViewById<ExtendedFloatingActionButton>(R.id.button_action_next).apply {
             setOnClickListener {
                 action()
             }
@@ -115,14 +185,23 @@ class FragmentUserPreview : Fragment() {
             }
         }
 
+        saveButtonView = view.findViewById<FloatingActionButton>(R.id.button_action_save).apply {
+            activityViewModel.loadedUser.observe(viewLifecycleOwner) {
+                isEnabled = it != null
+            }
+        }
+
+        userPreview = UserPreview(view)
+
+
         activityViewModel.currentUser.observe(viewLifecycleOwner) {
             if (it == null) showShutter(false)
         }
-        activityViewModel.showingUser.observe(viewLifecycleOwner) {
+        activityViewModel.loadedUser.observe(viewLifecycleOwner) {
             updateUI(it)
         }
-        activityViewModel.loadingProcess.observe(viewLifecycleOwner) {
-            if (it) showShutter(true)
+        activityViewModel.savedUsers.observe(viewLifecycleOwner) {
+            updateSaveUserButton(activityViewModel.loadedUser.value)
         }
     }
     
@@ -130,7 +209,7 @@ class FragmentUserPreview : Fragment() {
 
         private val cardView: CardView = view.findViewById<MaterialCardView>(R.id.cardView).apply {
             setOnClickListener {
-                activityViewModel.showingUser.value?.let {
+                activityViewModel.loadedUser.value?.let {
                     requireActivity().startVKUserProfile(it.id)
                 }
             }
@@ -191,7 +270,7 @@ class FragmentUserPreview : Fragment() {
                 if (online) {
                     val icon = if (user.online_mobile) R.drawable.ic_online_phone else R.drawable.ic_online_other
                     textView.setCompoundDrawablesWithIntrinsicBounds(0, 0, icon, 0)
-                    textView.setText(R.string.online)
+                    textView.setText(R.string.user_online)
                 } else {
                     lifecycleScope.launch(Dispatchers.IO) {
                         val text = getLastSeen(user)
@@ -209,16 +288,16 @@ class FragmentUserPreview : Fragment() {
         }
         @WorkerThread
         private fun getLastSeen(user: VKUser): String? {
-            val parsed = VKUsersParser.parseLastSeen(user)
+            val parsed = VKApi.Parser.parseLastSeen(user)
             if (parsed == null || parsed.isEmpty()) {
                 val lastSeen = user.last_seen
                 lastSeen.let {
                     val time = it.time
                     val date = Date(time * 1000L)
                     val genderPrefixId = when (user.sex) {
-                        1 -> R.string.last_seen_female
-                        2 -> R.string.last_seen_male
-                        else -> R.string.last_seen_other
+                        1 -> R.string.user_last_seen_female
+                        2 -> R.string.user_last_seen_male
+                        else -> R.string.user_last_seen_other
                     }
                     val format = SimpleDateFormat("${string(genderPrefixId)} d MMMM yyyy в HH:mm", AndroidUtils.getLocale())
                     return format.format(date)

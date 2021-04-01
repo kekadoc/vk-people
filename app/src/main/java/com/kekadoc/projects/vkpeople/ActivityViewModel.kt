@@ -1,91 +1,91 @@
 package com.kekadoc.projects.vkpeople
 
 import android.app.Activity
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
-import com.kekadoc.projects.vkpeople.data.VKCurrentUser
-import com.kekadoc.projects.vkpeople.data.VKUser
-import com.vk.api.sdk.VK
-import com.vk.api.sdk.VKTokenExpiredHandler
-import com.vk.api.sdk.auth.VKAccessToken
-import com.vk.api.sdk.auth.VKAuthCallback
-import com.vk.api.sdk.auth.VKScope
-import kotlinx.coroutines.*
+import com.kekadoc.projects.vkpeople.vkapi.data.VKUserPreview
+import com.kekadoc.projects.vkpeople.database.DatabaseRepository
+import com.kekadoc.projects.vkpeople.database.SavedUser
+import com.kekadoc.projects.vkpeople.util.RequestCallback
+import com.kekadoc.projects.vkpeople.vkapi.VKApi
+import com.kekadoc.projects.vkpeople.vkapi.data.VKCurrentUser
+import com.kekadoc.projects.vkpeople.vkapi.data.VKUser
+import com.kekadoc.tools.exeption.Wtf
+import kotlinx.coroutines.cancel
 
-class ActivityViewModel : ViewModel() {
+class ActivityViewModel(application: Application) : AndroidViewModel(application) {
 
     companion object {
         private const val TAG: String = "ActivityViewModel-TAG"
-
-        private const val LOADING_USER_TIMEOUT = 60_000L
     }
 
-    private val _loadingProcess = MutableLiveData(false)
-    val loadingProcess: LiveData<Boolean> = _loadingProcess
+    private val databaseRepository = DatabaseRepository(application)
+    private val vkRepository = VKApi.Repository(application)
 
-    private val _currentUser = MutableLiveData<VKCurrentUser?>()
-    private val _showingUser = MutableLiveData<VKUser?>()
+    val vkAuthCallback = vkRepository
 
-    val currentUser: LiveData<VKCurrentUser?> = _currentUser
-    val showingUser: LiveData<VKUser?> = _showingUser
-
-    private val vkAuthCallbackHandler = CoroutineExceptionHandler { _, exception ->
-        Log.e(TAG, "vkAuthCallbackHandler: $exception")
+    private val savedUsersObserver: Observer<List<SavedUser>> = Observer<List<SavedUser>> { users ->
+        vkRepository.requestSavedUsers(users.map { it.id })
     }
 
-    val tokenTracker = object: VKTokenExpiredHandler {
-        override fun onTokenExpired() {
-            _currentUser.postValue(null)
+    val currentUser: LiveData<VKCurrentUser?> by lazy { vkRepository.currentUser }
+    val loadedUser: LiveData<VKUser?> by lazy { vkRepository.showingUser }
+    val savedUsers: LiveData<List<VKUserPreview>> = MutableLiveData<List<VKUserPreview>>(emptyList()).apply {
+        val observer: Observer<List<VKUserPreview>> = Observer<List<VKUserPreview>> { users ->
+            value = users
+        }
+        currentUser.observeForever {
+            if (it == null) {
+                postValue(emptyList())
+                vkRepository.savedUsers.removeObserver(observer)
+            } else {
+                vkRepository.savedUsers.observeForever(observer)
+            }
         }
     }
 
-    val vkAuthCallback = object: VKAuthCallback {
-        override fun onLogin(token: VKAccessToken) {
-            requestCurrentUser()
-        }
-        override fun onLoginFailed(errorCode: Int) {
-            _currentUser.postValue(null)
-            Log.e(TAG, "onLoginFailed: $errorCode")
-        }
+    init {
+        databaseRepository.savedUsers.observeForever(savedUsersObserver)
     }
 
-    private var activeRequestCurrentUser: Job? = null
-    private var activeRequest: Job? = null
+    fun containUserInSaved(id: Int, callback: RequestCallback<Boolean>? = null) = databaseRepository.containUserInSaved(id, callback)
+
+    fun saveLoadedUser(callback: RequestCallback<Unit>? = null) {
+        if (loadedUser.value == null) {
+            callback!!.onFail(Wtf("Not found user!"))
+            return
+        }
+        loadedUser.value?.let {
+            databaseRepository.saveUser(it.id, callback)
+        }
+    }
+    fun saveUser(id: Int, callback: RequestCallback<Unit>? = null) {
+        databaseRepository.saveUser(id, callback)
+    }
+    fun deleteSavedUser(id: Int, callback: RequestCallback<Unit>? = null) {
+        databaseRepository.deleteUser(id, callback)
+    }
 
     fun logIn(activity: Activity) {
-        VK.login(activity, VKApi.getVKScopes())
+        vkRepository.logIn(activity)
     }
     fun logOut() {
-        VK.logout()
-        _currentUser.value = null
-        _showingUser.value = null
+        vkRepository.logOut()
     }
 
-    fun requestCurrentUser() {
-        activeRequestCurrentUser = runRequest {
-            _currentUser.postValue(VK.getLastSignedAccount())
-        }
+    fun requestRandomUser(callback: RequestCallback<Unit>? = null) {
+        vkRepository.requestRandomUser(callback)
     }
-    fun requestRandomUser() {
-        requestAnotherUser { VKUserProvider.requestRandomUser() }
-    }
-    fun requestUser(id: Int) {
-        requestAnotherUser { VKUserProvider.loadUser(id) }
+    fun requestUser(id: Int, callback: RequestCallback<Unit>? = null) {
+        vkRepository.requestUser(id, callback)
     }
 
-    private fun requestAnotherUser(block: suspend CoroutineScope.() -> VKUser?) {
-        _loadingProcess.value = true
-        activeRequest?.cancel()
-        activeRequest = runRequest {
-            val user = withTimeout(LOADING_USER_TIMEOUT, block)
-            _showingUser.postValue(user)
-            activeRequest = null
-            _loadingProcess.postValue(false)
-        }
-    }
-
-    private fun runRequest(block: suspend CoroutineScope.() -> Unit): Job {
-        return viewModelScope.launch(Dispatchers.IO + vkAuthCallbackHandler, block = block)
+    override fun onCleared() {
+        super.onCleared()
+        databaseRepository.savedUsers.removeObserver(savedUsersObserver)
+        databaseRepository.cancel()
+        vkRepository.cancel()
     }
 
 }

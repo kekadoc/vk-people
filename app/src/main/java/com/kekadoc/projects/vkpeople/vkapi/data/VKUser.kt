@@ -1,4 +1,4 @@
-package com.kekadoc.projects.vkpeople.data
+package com.kekadoc.projects.vkpeople.vkapi.data
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
@@ -196,6 +196,11 @@ data class VKUser(
          * url фотографии, имеющей ширину 400 пикселей.
          * Если у пользователя отсутствует фотография такого размера, в ответе вернется https://vk.com/images/camera_400.png.
          */
+        val photo_200: String,
+        /**
+         * url фотографии, имеющей ширину 400 пикселей.
+         * Если у пользователя отсутствует фотография такого размера, в ответе вернется https://vk.com/images/camera_400.png.
+         */
         val photo_400_orig: String,
         /**
          * url фотографии, имеющей ширину 400 пикселей.
@@ -296,6 +301,7 @@ data class VKUser(
                     games = json.optString(Fields.GAMES),
                     quotes = json.optString(Fields.QUOTES),
                     about = json.optString(Fields.ABOUT),
+                    photo_200 = json.optString(Fields.PHOTO_200),
                     photo_400_orig = json.optString(Fields.PHOTO_400_ORIG),
                     photo_max_orig = json.optString(Fields.PHOTO_MAX_ORIG)
             )

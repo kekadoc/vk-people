@@ -1,8 +1,7 @@
-package com.kekadoc.projects.vkpeople.request
+package com.kekadoc.projects.vkpeople.vkapi.request
 
-import com.kekadoc.projects.vkpeople.data.VKCurrentUser
-import com.kekadoc.projects.vkpeople.data.VKUser
-import com.kekadoc.projects.vkpeople.getJSONArrayOrNull
+import com.kekadoc.projects.vkpeople.vkapi.data.VKCurrentUser
+import com.kekadoc.projects.vkpeople.vkapi.data.VKUser
 import com.vk.api.sdk.requests.VKRequest
 import org.json.JSONObject
 
@@ -17,8 +16,9 @@ class VKCurrentUserRequest : VKRequest<VKCurrentUser?>("users.get") {
     }
 
     override fun parse(r: JSONObject): VKCurrentUser? {
-        val ja = r.getJSONArrayOrNull(VKRequestApi.RESPONSE)
-        if (ja == null || ja.length() == 0) return null
+        if (!r.has(VKRequestApi.RESPONSE)) return null
+        val ja = r.getJSONArray(VKRequestApi.RESPONSE)
+        if (ja.length() == 0) return null
         val jo = ja.getJSONObject(0)
         return VKCurrentUser.parse(jo)
     }
